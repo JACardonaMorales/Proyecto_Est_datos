@@ -140,6 +140,8 @@ sfml-system.lib;sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="ScoreTree.cpp" />
     <ClCompile Include="SpriteManager.cpp" />
     <ClCompile Include="Treasure.cpp" />
     <ClCompile Include="TreasureStack.cpp" />
@@ -150,6 +152,8 @@ sfml-system.lib;sfml-audio.lib;%(AdditionalDependencies)</AdditionalDependencies
     <ClInclude Include="Board.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="ScoreTree.h" />
     <ClInclude Include="SpriteManager.h" />
     <ClInclude Include="Treasure.h" />
     <ClInclude Include="TreasureStack.h" />

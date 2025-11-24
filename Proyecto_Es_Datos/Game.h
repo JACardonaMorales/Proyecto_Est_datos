@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "Board.h"
 #include "SpriteManager.h"
+#include "Player.h"
 
 const int BOARD_SIZE = 9;
 const int CELL_SIZE = 60;
@@ -24,7 +25,7 @@ private:
     bool isPlayerMoving; // Si el jugador está en movimiento
     float movementAnimDuration; // Duración de la animación de movimiento
     bool showMessage; // Si hay un mensaje para mostrar
-	bool gameOver;
+    bool gameOver; // Si el juego terminó
 
     void handleEvents();
     void handleKeyPress(sf::Keyboard::Key key);

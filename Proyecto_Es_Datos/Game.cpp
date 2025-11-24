@@ -9,7 +9,7 @@ Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     isPlayerMoving(false), movementAnimDuration(0.45f),
     showMessage(false), currentMessage("") {
 
-    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
+    if (!font.loadFromFile("assets/fonts/aria.ttf")) {
         std::cerr << "Advertencia: No se pudo cargar la fuente" << std::endl;
     }
 
@@ -581,8 +581,8 @@ void Game::drawGameOverScreen() {
     // Texto del botón
     sf::Text buttonText;
     buttonText.setFont(font);
-    buttonText.setString("Presiona R para Reiniciar");
-    buttonText.setCharacterSize(22);
+    buttonText.setString("R: Reiniciar | L: Ranking");
+    buttonText.setCharacterSize(20);
     buttonText.setFillColor(sf::Color::White);
     buttonText.setStyle(sf::Text::Bold);
     sf::FloatRect btnBounds = buttonText.getLocalBounds();
@@ -607,4 +607,113 @@ void Game::resetGame() {
     new (&board) Board();
 
     std::cout << "\n=== NUEVO JUEGO INICIADO ===" << std::endl;
+}
+
+void Game::handleTextInput(sf::Uint32 unicode) {
+    // Backspace
+    if (unicode == 8) {
+        if (!playerName.empty()) {
+            playerName.pop_back();
+        }
+    }
+    // Caracteres válidos (letras, números, espacios)
+    else if (unicode >= 32 && unicode < 127 && playerName.length() < 20) {
+        playerName += static_cast<char>(unicode);
+    }
+}
+
+void Game::saveScore() {
+    if (!playerName.empty()) {
+        scoreTree.insertPlayer(playerName, score);
+        std::cout << "\nPuntaje guardado para " << playerName << ": " << score << std::endl;
+    }
+}
+
+void Game::drawNameInputScreen() {
+    // Overlay
+    sf::RectangleShape overlay(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+    overlay.setFillColor(sf::Color(0, 0, 0, 200));
+    window.draw(overlay);
+
+    // Panel
+    sf::RectangleShape panel(sf::Vector2f(500, 250));
+    panel.setPosition(WINDOW_WIDTH / 2 - 250, WINDOW_HEIGHT / 2 - 125);
+    panel.setFillColor(sf::Color(40, 40, 40));
+    panel.setOutlineColor(sf::Color(100, 150, 255));
+    panel.setOutlineThickness(5);
+    window.draw(panel);
+
+    // Título
+    sf::Text title;
+    title.setFont(font);
+    title.setString("LABERINTO DE TESOROS");
+    title.setCharacterSize(32);
+    title.setFillColor(sf::Color(255, 215, 0));
+    title.setStyle(sf::Text::Bold);
+    sf::FloatRect titleBounds = title.getLocalBounds();
+    title.setPosition(WINDOW_WIDTH / 2 - titleBounds.width / 2, WINDOW_HEIGHT / 2 - 90);
+    window.draw(title);
+
+    // Instrucción
+    sf::Text instruction;
+    instruction.setFont(font);
+    instruction.setString("Ingresa tu nombre:");
+    instruction.setCharacterSize(24);
+    instruction.setFillColor(sf::Color::White);
+    sf::FloatRect instBounds = instruction.getLocalBounds();
+    instruction.setPosition(WINDOW_WIDTH / 2 - instBounds.width / 2, WINDOW_HEIGHT / 2 - 30);
+    window.draw(instruction);
+
+    // Campo de texto
+    sf::RectangleShape textBox(sf::Vector2f(400, 50));
+    textBox.setPosition(WINDOW_WIDTH / 2 - 200, WINDOW_HEIGHT / 2 + 10);
+    textBox.setFillColor(sf::Color(60, 60, 60));
+    textBox.setOutlineColor(sf::Color::White);
+    textBox.setOutlineThickness(2);
+    window.draw(textBox);
+
+    // Nombre del jugador
+    sf::Text nameText;
+    nameText.setFont(font);
+    nameText.setString(playerName.empty() ? "_" : playerName + "_");
+    nameText.setCharacterSize(28);
+    nameText.setFillColor(sf::Color::White);
+    nameText.setPosition(WINDOW_WIDTH / 2 - 190, WINDOW_HEIGHT / 2 + 20);
+    window.draw(nameText);
+
+    // Hint
+    sf::Text hint;
+    hint.setFont(font);
+    hint.setString("Presiona ENTER para continuar");
+    hint.setCharacterSize(18);
+    hint.setFillColor(sf::Color(150, 150, 150));
+    sf::FloatRect hintBounds = hint.getLocalBounds();
+    hint.setPosition(WINDOW_WIDTH / 2 - hintBounds.width / 2, WINDOW_HEIGHT / 2 + 80);
+    window.draw(hint);
+}
+
+void Game::drawLeaderboard() {
+    std::cout << "\n===================================" << std::endl;
+    std::cout << "|      TABLA DE CLASIFICACIÓN      |" << std::endl;
+    std::cout << "|===================================|" << std::endl;
+
+    std::vector<Player> topPlayers = scoreTree.getTopPlayers(10);
+
+    if (topPlayers.empty()) {
+        std::cout << "|  No hay jugadores registrados    |" << std::endl;
+    }
+    else {
+        for (size_t i = 0; i < topPlayers.size(); i++) {
+            std::cout << "| " << (i + 1) << ". ";
+            std::cout << topPlayers[i].getName();
+
+            // Espaciado
+            int spaces = 25 - topPlayers[i].getName().length();
+            for (int j = 0; j < spaces; j++) std::cout << " ";
+
+            std::cout << topPlayers[i].getBestScore() << " pts |" << std::endl;
+        }
+    }
+
+    std::cout << "=====================================" << std::endl;
 }
