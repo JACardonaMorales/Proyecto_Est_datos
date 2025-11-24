@@ -1,14 +1,12 @@
 ﻿  Board.cpp
-  Game.cpp
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Board.cpp(7,25): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(315,52): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(315,35): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(490,56): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(499,54): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(514,50): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(712,24): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+  Game.cpp
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(335,52): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(335,35): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(510,56): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(519,54): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(534,50): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(732,24): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
   main.cpp
-  Player.cpp
-  ScoreTree.cpp
   Generando código...
   Proyecto_Es_Datos.vcxproj -> C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\x64\Debug\Proyecto_Es_Datos.exe

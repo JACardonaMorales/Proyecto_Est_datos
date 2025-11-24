@@ -42,6 +42,17 @@ void Game::handleEvents() {
 }
 
 void Game::handleKeyPress(sf::Keyboard::Key key) {
+    // Si el juego terminó, solo permitir reiniciar o ver ranking
+    if (gameOver) {
+        if (key == sf::Keyboard::R) {
+            resetGame();
+        }
+        else if (key == sf::Keyboard::L) {
+            drawLeaderboard();
+        }
+        return;
+    }
+
     char direction = ' ';
     Direction animDirection = Direction::DOWN;
 
@@ -139,11 +150,11 @@ void Game::applyTreasureEffect(Treasure* treasure) {
         int random = std::rand() % 2;
         if (random == 0) {
             score = 0;
-            std::cout << "¡Oh no! Puntos reducidos a 0" << std::endl;
+            std::cout << "¡Suerte! Puntos reducidos a 0" << std::endl;
         }
         else {
             score *= 2;
-            std::cout << "¡Suerte! Puntos duplicados: " << score << std::endl;
+            std::cout << "¡Oh no! Puntos duplicados: " << score << std::endl;
         }
         break;
     }
@@ -240,6 +251,10 @@ void Game::teleportPlayerRandomly() {
         int randomIndex = std::rand() % validPositions.size();
         Node* newPos = validPositions[randomIndex];
         newPos->setHasPlayer(true);
+
+        // AGREGAR ESTA LÍNEA CRÍTICA:
+        // Actualizar la referencia del playerNode en Board
+        board.setPlayerNode(newPos);
     }
 }
 
@@ -261,10 +276,11 @@ void Game::update() {
         showMessage = false;
     }
 
-    // Verificar si ganó
-    if (board.getTreasuresCollected() >= board.getTotalTreasures()) {
+    // Verificar si ganó (solo verificar si NO está en game over)
+    if (!gameOver && board.getTreasuresCollected() >= board.getTotalTreasures()) {
         std::cout << "¡Felicidades! Has encontrado todos los tesoros" << std::endl;
         std::cout << "Puntaje final: " << score << std::endl;
+        gameOver = true; 
         // TODO: Guardar puntaje y preguntar si quiere jugar de nuevo
     }
 }
@@ -274,6 +290,10 @@ void Game::render() {
 
     drawBoard();
     drawUI();
+
+    if (gameOver) {
+        drawGameOverScreen();
+    }
 
     // Dibujar mensaje temporal
     if (showMessage) {
