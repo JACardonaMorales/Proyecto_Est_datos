@@ -9,7 +9,7 @@ Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     isPlayerMoving(false), movementAnimDuration(0.45f),
     showMessage(false), currentMessage("") {
 
-    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
+    if (!font.loadFromFile("assets/fonts/aria.ttf")) {
         std::cerr << "Advertencia: No se pudo cargar la fuente" << std::endl;
     }
 

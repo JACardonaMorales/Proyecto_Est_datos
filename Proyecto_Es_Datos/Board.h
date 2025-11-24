@@ -10,6 +10,7 @@ private:
     int totalTreasures;
     int treasuresCollected;
     int wallsRemaining;
+    TreasureStack collectedTreasures;
 
     // Helper privados
     Node* getNodeAt(int row, int col);
@@ -28,6 +29,8 @@ public:
     Node* getPlayerNode();
     int getTreasuresCollected() const;
     int getTotalTreasures() const;
+    TreasureStack* getTreasureStack();
 
     bool movePlayer(char direction);
+    Treasure* getLastCollectedTreasure();
 };

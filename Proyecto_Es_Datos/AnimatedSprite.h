@@ -1,12 +1,12 @@
-#pragma once
+ï»¿#pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
 
 enum class Direction {
-    DOWN = 0,   // Fila 0: mirando abajo
-    UP = 1,     // Fila 1: mirando arriba  
-    LEFT = 2,   // Fila 2: mirando izquierda
-    RIGHT = 3   // Fila 3: mirando derecha
+    DOWN = 0,   // Fila 0: mirando abajo âœ“
+    LEFT = 3,   // Fila 1: mirando izquierda (era derecha antes)
+    RIGHT = 1,  // Fila 2: mirando derecha (era izquierda antes)
+    UP = 2      // Fila 3: mirando arriba (era izquierda antes)
 };
 
 class AnimatedSprite {
@@ -14,13 +14,13 @@ private:
     sf::Texture texture;
     sf::Sprite sprite;
 
-    // Configuración del spritesheet
+    // ConfiguraciÃ³n del spritesheet
     int frameWidth;      // Ancho de cada frame
     int frameHeight;     // Alto de cada frame
-    int framesPerRow;    // Frames por fila (animación)
+    int framesPerRow;    // Frames por fila (animaciÃ³n)
     int totalRows;       // Filas totales (direcciones)
 
-    // Estado de animación
+    // Estado de animaciÃ³n
     int currentFrame;
     Direction currentDirection;
     float animationTimer;
@@ -36,7 +36,7 @@ public:
     bool loadFromFile(const std::string& filename, int frameW, int frameH,
         int framesPerRow = 3, int rows = 4);
 
-    // Control de animación
+    // Control de animaciÃ³n
     void setDirection(Direction dir);
     void play();
     void stop();

@@ -31,7 +31,7 @@ bool SpriteManager::loadTexture(SpriteID id) {
         return false;
     }
 
-    texture.setSmooth(false); // Para pixel art nítido
+    texture.setSmooth(false); // Para pixel nítido
     textures[id] = texture;
     return true;
 }
