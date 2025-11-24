@@ -5,7 +5,8 @@
 
 Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     "Laberinto - Estructuras de Datos"),
-    score(0), running(true), lastDirection(Direction::DOWN),
+	score(0), running(true), gameOver(false), playerName(""),
+    lastDirection(Direction::DOWN),
     isPlayerMoving(false), movementAnimDuration(0.45f),
     showMessage(false), currentMessage("") {
 

@@ -3,6 +3,7 @@
 #include "Board.h"
 #include "SpriteManager.h"
 #include "Player.h"
+#include "ScoreTree.h"
 
 const int BOARD_SIZE = 9;
 const int CELL_SIZE = 60;
@@ -26,6 +27,8 @@ private:
     float movementAnimDuration; // Duración de la animación de movimiento
     bool showMessage; // Si hay un mensaje para mostrar
     bool gameOver; // Si el juego terminó
+    std::string playerName; 
+    ScoreTree scoreTree;
 
     void handleEvents();
     void handleKeyPress(sf::Keyboard::Key key);
@@ -43,6 +46,10 @@ private:
     void drawTreasurePanel();
     void drawGameOverScreen();
     void resetGame();
+    void handleTextInput(sf::Uint32 unicode);
+    void saveScore();
+    void drawNameInputScreen();
+    void drawLeaderboard();
 
 public:
     Game();
