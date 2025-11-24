@@ -1,13 +1,20 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include <iostream>
+#include <vector>
+#include <cstdlib>
 
 Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     "Laberinto - Estructuras de Datos"),
-    score(0), running(true) {
+    score(0), running(true), lastDirection(Direction::DOWN),
+    isPlayerMoving(false), movementAnimDuration(0.45f),
+    showMessage(false), currentMessage("") {
 
-    if (!font.loadFromFile("assets/fonts/upheavtt.ttf")) {
+    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
         std::cerr << "Advertencia: No se pudo cargar la fuente" << std::endl;
     }
+
+    // Cargar sprites
+    spriteManager.loadAllSprites();
 
     window.setFramerateLimit(60);
 }
@@ -35,12 +42,25 @@ void Game::handleEvents() {
 
 void Game::handleKeyPress(sf::Keyboard::Key key) {
     char direction = ' ';
+    Direction animDirection = Direction::DOWN;
 
     switch (key) {
-    case sf::Keyboard::W: direction = 'W'; break;
-    case sf::Keyboard::S: direction = 'S'; break;
-    case sf::Keyboard::A: direction = 'A'; break;
-    case sf::Keyboard::D: direction = 'D'; break;
+    case sf::Keyboard::W:
+        direction = 'W';
+        animDirection = Direction::UP;
+        break;
+    case sf::Keyboard::S:
+        direction = 'S';
+        animDirection = Direction::DOWN;
+        break;
+    case sf::Keyboard::A:
+        direction = 'A';
+        animDirection = Direction::LEFT;
+        break;
+    case sf::Keyboard::D:
+        direction = 'D';
+        animDirection = Direction::RIGHT;
+        break;
     case sf::Keyboard::T:
         showTreasures();
         return;
@@ -51,26 +71,198 @@ void Game::handleKeyPress(sf::Keyboard::Key key) {
     }
 
     if (direction != ' ') {
+        // Actualizar dirección del sprite
+        lastDirection = animDirection;
+        spriteManager.setPlayerDirection(animDirection);
+
+        // Guardar tesoros antes del movimiento
+        int treasuresBefore = board.getTreasuresCollected();
+
         if (board.movePlayer(direction)) {
             score++;
+
+            // Verificar si se recogió un tesoro
+            if (board.getTreasuresCollected() > treasuresBefore) {
+                Treasure* lastTreasure = board.getLastCollectedTreasure();
+                if (lastTreasure) {
+                    currentMessage = "¡Encontraste un " + lastTreasure->getTypeName() + "!";
+                    showMessage = true;
+                    messageTimer.restart();
+                }
+            }
         }
+
+        // Iniciar animación
+        spriteManager.startPlayerAnimation();
+        isPlayerMoving = true;
+        animationClock.restart(); // Reiniciar el reloj de animación
     }
 }
 
 void Game::showTreasures() {
-    // TODO: Mostrar pila de tesoros
-    std::cout << "Tesoros recolectados: " << board.getTreasuresCollected() << std::endl;
+    board.getTreasureStack()->printStack();
 }
 
 void Game::useTreasure() {
-    // TODO: Usar �ltimo tesoro de la pila
-    std::cout << "Usando tesoro..." << std::endl;
+    TreasureStack* treasures = board.getTreasureStack();
+
+    if (treasures->isEmpty()) {
+        std::cout << "No tienes tesoros para usar" << std::endl;
+        return;
+    }
+
+    Treasure* treasure = treasures->pop();
+    std::cout << "\n¡Usando " << treasure->getTypeName() << "!" << std::endl;
+
+    applyTreasureEffect(treasure);
+
+    delete treasure;
+}
+
+void Game::applyTreasureEffect(Treasure* treasure) {
+    switch (treasure->getType()) {
+    case TreasureType::RUBY:
+        // Reducir puntos a la mitad
+        score = score / 2;
+        std::cout << "Puntos reducidos a la mitad. Nuevo puntaje: " << score << std::endl;
+        break;
+
+    case TreasureType::DIAMOND:
+        // Eliminar 2 muros aleatorios
+        removeRandomWalls(2);
+        std::cout << "2 muros eliminados del tablero" << std::endl;
+        break;
+
+    case TreasureType::PEARL: {
+        // 50% probabilidad: puntos x2 o puntos = 0
+        int random = std::rand() % 2;
+        if (random == 0) {
+            score = 0;
+            std::cout << "¡Oh no! Puntos reducidos a 0" << std::endl;
+        }
+        else {
+            score *= 2;
+            std::cout << "¡Suerte! Puntos duplicados: " << score << std::endl;
+        }
+        break;
+    }
+
+    case TreasureType::AMBER:
+        // Teletransportar jugador
+        teleportPlayerRandomly();
+        std::cout << "¡Teletransportado a otra ubicación!" << std::endl;
+        break;
+    }
+
+    // Ocultar todas las celdas después de usar un tesoro
+    hideAllTiles();
+}
+
+void Game::hideAllTiles() {
+    Node* currentRow = board.getHead();
+
+    while (currentRow) {
+        Node* current = currentRow;
+
+        while (current) {
+            // No ocultar paredes externas ni la posición del jugador
+            if (!current->getWall() || !current->getWall()->isExternalWall()) {
+                if (!current->getHasPlayer()) {
+                    current->setIsRevealed(false);
+                }
+            }
+            current = current->getRight();
+        }
+
+        currentRow = currentRow->getDown();
+    }
+
+    std::cout << "El mapa ha sido ocultado nuevamente" << std::endl;
+}
+
+void Game::removeRandomWalls(int count) {
+    // Buscar todos los muros internos
+    std::vector<Node*> internalWalls;
+
+    Node* currentRow = board.getHead();
+    while (currentRow) {
+        Node* current = currentRow;
+        while (current) {
+            if (current->isWall() && !current->getWall()->isExternalWall()) {
+                internalWalls.push_back(current);
+            }
+            current = current->getRight();
+        }
+        currentRow = currentRow->getDown();
+    }
+
+    // Eliminar muros aleatorios
+    int removed = 0;
+    while (removed < count && !internalWalls.empty()) {
+        int randomIndex = std::rand() % internalWalls.size();
+        Node* wallNode = internalWalls[randomIndex];
+
+        // Eliminar el muro
+        wallNode->setWall(nullptr);
+        wallNode->setIsRevealed(true);
+
+        internalWalls.erase(internalWalls.begin() + randomIndex);
+        removed++;
+    }
+}
+
+void Game::teleportPlayerRandomly() {
+    // Buscar posiciones válidas (no muros, no tesoros, reveladas)
+    std::vector<Node*> validPositions;
+
+    Node* currentRow = board.getHead();
+    while (currentRow) {
+        Node* current = currentRow;
+        while (current) {
+            if (!current->isWall() && !current->hasTreasure() &&
+                current->getIsRevealed() && !current->getHasPlayer()) {
+                validPositions.push_back(current);
+            }
+            current = current->getRight();
+        }
+        currentRow = currentRow->getDown();
+    }
+
+    if (!validPositions.empty()) {
+        // Remover jugador de posición actual
+        Node* oldPos = board.getPlayerNode();
+        if (oldPos) {
+            oldPos->setHasPlayer(false);
+        }
+
+        // Colocar en nueva posición
+        int randomIndex = std::rand() % validPositions.size();
+        Node* newPos = validPositions[randomIndex];
+        newPos->setHasPlayer(true);
+    }
 }
 
 void Game::update() {
-    // Verificar si gan�
+    // Obtener delta time
+    float deltaTime = clock.restart().asSeconds();
+
+    // Actualizar animación del jugador
+    spriteManager.updatePlayerAnimation(deltaTime);
+
+    // Detener animación después de un tiempo
+    if (isPlayerMoving && animationClock.getElapsedTime().asSeconds() > movementAnimDuration) {
+        spriteManager.stopPlayerAnimation();
+        isPlayerMoving = false;
+    }
+
+    // Ocultar mensaje después de 2 segundos
+    if (showMessage && messageTimer.getElapsedTime().asSeconds() > 2.0f) {
+        showMessage = false;
+    }
+
+    // Verificar si ganó
     if (board.getTreasuresCollected() >= board.getTotalTreasures()) {
-        std::cout << "�Felicidades! Has encontrado todos los tesoros" << std::endl;
+        std::cout << "¡Felicidades! Has encontrado todos los tesoros" << std::endl;
         std::cout << "Puntaje final: " << score << std::endl;
         // TODO: Guardar puntaje y preguntar si quiere jugar de nuevo
     }
@@ -81,6 +273,31 @@ void Game::render() {
 
     drawBoard();
     drawUI();
+
+    // Dibujar mensaje temporal
+    if (showMessage) {
+        sf::RectangleShape messageBox(sf::Vector2f(400, 60));
+        messageBox.setPosition(WINDOW_WIDTH / 2 - 200, 20);
+        messageBox.setFillColor(sf::Color(0, 0, 0, 180));
+        messageBox.setOutlineColor(sf::Color::Yellow);
+        messageBox.setOutlineThickness(3);
+        window.draw(messageBox);
+
+        sf::Text messageText;
+        messageText.setFont(font);
+        messageText.setString(currentMessage);
+        messageText.setCharacterSize(22);
+        messageText.setFillColor(sf::Color::Yellow);
+        messageText.setStyle(sf::Text::Bold);
+
+        // Centrar texto
+        sf::FloatRect textBounds = messageText.getLocalBounds();
+        messageText.setPosition(
+            WINDOW_WIDTH / 2 - textBounds.width / 2,
+            35
+        );
+        window.draw(messageText);
+    }
 
     window.display();
 }
@@ -105,17 +322,19 @@ void Game::drawBoard() {
 }
 
 void Game::drawCell(Node* node, float x, float y) {
-    sf::RectangleShape cell(sf::Vector2f(CELL_SIZE - 2, CELL_SIZE - 2));
-    cell.setPosition(x + 1, y + 1);
-    cell.setOutlineThickness(1);
-    cell.setOutlineColor(sf::Color(50, 50, 50));
-
-    // Determinar color de la celda
+    // Dibujar el fondo de la celda
     if (node->isWall() && node->getIsRevealed()) {
-        cell.setFillColor(node->getWall()->getColor());
+        // Dibujar muro
+        if (node->getWall()->isExternalWall()) {
+            spriteManager.drawWithFallback(window, SpriteID::WALL_EXTERNAL, x, y, CELL_SIZE);
+        }
+        else {
+            spriteManager.drawWithFallback(window, SpriteID::WALL_INTERNAL, x, y, CELL_SIZE);
+        }
     }
     else if (!node->getIsRevealed()) {
-        cell.setFillColor(sf::Color(100, 100, 100));
+        // Celda oculta
+        spriteManager.drawWithFallback(window, SpriteID::TILE_HIDDEN, x, y, CELL_SIZE);
 
         // Dibujar "o" para celdas ocultas
         sf::Text text;
@@ -124,42 +343,71 @@ void Game::drawCell(Node* node, float x, float y) {
         text.setCharacterSize(20);
         text.setFillColor(sf::Color(150, 150, 150));
         text.setPosition(x + CELL_SIZE / 2 - 6, y + CELL_SIZE / 2 - 12);
-        window.draw(cell);
         window.draw(text);
-        return;
     }
     else {
-        cell.setFillColor(sf::Color(200, 200, 200));
+        // Celda revelada vacía
+        spriteManager.drawWithFallback(window, SpriteID::TILE_EMPTY, x, y, CELL_SIZE);
     }
 
-    window.draw(cell);
+    // Dibujar tesoro (si está revelado y no fue recogido)
+    if (node->hasTreasure() && node->getIsRevealed()) {
+        Treasure* treasure = node->getTreasure();
+        SpriteID treasureSprite;
+
+        switch (treasure->getType()) {
+        case TreasureType::RUBY:
+            treasureSprite = SpriteID::RUBY;
+            break;
+        case TreasureType::DIAMOND:
+            treasureSprite = SpriteID::DIAMOND;
+            break;
+        case TreasureType::PEARL:
+            treasureSprite = SpriteID::PEARL;
+            break;
+        case TreasureType::AMBER:
+            treasureSprite = SpriteID::AMBER;
+            break;
+        }
+
+        spriteManager.drawWithFallback(window, treasureSprite, x, y, CELL_SIZE);
+    }
 
     // Dibujar jugador
     if (node->getHasPlayer()) {
-        sf::CircleShape player(CELL_SIZE / 3);
-        player.setFillColor(sf::Color::Green);
-        player.setPosition(x + CELL_SIZE / 6, y + CELL_SIZE / 6);
-        window.draw(player);
+        if (spriteManager.hasAnimatedPlayer()) {
+            // Usar sprite animado
+            AnimatedSprite* playerAnim = spriteManager.getPlayerSprite();
+            if (playerAnim) {
+                // Tu spritesheet es 124x144 con 3x4 frames
+                // Cada frame es aproximadamente 41x36 píxeles
+                // Queremos que ocupe aproximadamente 48x48 en pantalla
+                float scaleX = 48.0f / 41.0f; // ≈ 1.17
+                float scaleY = 48.0f / 36.0f; // ≈ 1.33
 
-        sf::Text text;
-        text.setFont(font);
-        text.setString("P");
-        text.setCharacterSize(24);
-        text.setFillColor(sf::Color::White);
-        text.setPosition(x + CELL_SIZE / 3, y + CELL_SIZE / 4);
-        window.draw(text);
+                playerAnim->setScale(scaleX, scaleY);
+                playerAnim->setPosition(x + 6, y + 6); // Centrar en la celda
+                playerAnim->draw(window);
+            }
+        }
+        else {
+            // Fallback o sprite estático
+            spriteManager.drawWithFallback(window, SpriteID::PLAYER, x, y, CELL_SIZE);
+
+            if (spriteManager.isFallbackMode()) {
+                sf::Text text;
+                text.setFont(font);
+                text.setString("P");
+                text.setCharacterSize(24);
+                text.setFillColor(sf::Color::White);
+                text.setPosition(x + CELL_SIZE / 3, y + CELL_SIZE / 4);
+                window.draw(text);
+            }
+        }
     }
 
-    // Dibujar tesoro (si est� revelado y no fue recogido)
-    if (node->hasTreasure() && node->getIsRevealed()) {
-        sf::CircleShape treasureShape(CELL_SIZE / 4);
-        treasureShape.setFillColor(node->getTreasure()->getColor());
-        treasureShape.setPosition(x + CELL_SIZE / 4, y + CELL_SIZE / 4);
-        window.draw(treasureShape);
-    }
-
-    // Dibujar s�mbolo de muro visible
-    if (node->isWall() && node->getIsRevealed()) {
+    // Dibujar símbolo de muro visible (solo en fallback)
+    if (node->isWall() && node->getIsRevealed() && spriteManager.isFallbackMode()) {
         sf::Text text;
         text.setFont(font);
         text.setString("|");
@@ -198,4 +446,71 @@ void Game::drawUI() {
     controlsText.setFillColor(sf::Color(150, 150, 150));
     controlsText.setPosition(20, WINDOW_HEIGHT - 40);
     window.draw(controlsText);
+
+    // Panel de tesoros recolectados
+    drawTreasurePanel();
+}
+
+void Game::drawTreasurePanel() {
+    TreasureStack* treasures = board.getTreasureStack();
+
+    if (treasures->isEmpty()) {
+        return;
+    }
+
+    // Fondo del panel
+    sf::RectangleShape panel(sf::Vector2f(200, 150));
+    panel.setPosition(WINDOW_WIDTH - 220, 20);
+    panel.setFillColor(sf::Color(40, 40, 40, 200));
+    panel.setOutlineColor(sf::Color(200, 200, 200));
+    panel.setOutlineThickness(2);
+    window.draw(panel);
+
+    // Título
+    sf::Text title;
+    title.setFont(font);
+    title.setString("Tesoros (T)");
+    title.setCharacterSize(18);
+    title.setFillColor(sf::Color::Yellow);
+    title.setPosition(WINDOW_WIDTH - 210, 30);
+    window.draw(title);
+
+    // Mostrar últimos 3 tesoros
+    StackNode* current = treasures->getTop();
+    int yOffset = 60;
+    int count = 0;
+
+    while (current && count < 3) {
+        Treasure* t = current->getTreasure();
+
+        // Círculo de color del tesoro
+        sf::CircleShape treasureCircle(10);
+        treasureCircle.setFillColor(t->getColor());
+        treasureCircle.setPosition(WINDOW_WIDTH - 210, yOffset);
+        window.draw(treasureCircle);
+
+        // Nombre del tesoro
+        sf::Text treasureName;
+        treasureName.setFont(font);
+        treasureName.setString(t->getTypeName());
+        treasureName.setCharacterSize(16);
+        treasureName.setFillColor(sf::Color::White);
+        treasureName.setPosition(WINDOW_WIDTH - 185, yOffset);
+        window.draw(treasureName);
+
+        current = current->getNext();
+        yOffset += 30;
+        count++;
+    }
+
+    // Indicador de más tesoros
+    if (treasures->getSize() > 3) {
+        sf::Text moreText;
+        moreText.setFont(font);
+        moreText.setString("+ " + std::to_string(treasures->getSize() - 3) + " mas...");
+        moreText.setCharacterSize(14);
+        moreText.setFillColor(sf::Color(150, 150, 150));
+        moreText.setPosition(WINDOW_WIDTH - 210, yOffset);
+        window.draw(moreText);
+    }
 }

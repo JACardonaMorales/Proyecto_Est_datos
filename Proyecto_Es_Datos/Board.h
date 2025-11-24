@@ -1,5 +1,7 @@
 #pragma once
-#include "Nodo.h"
+#include "Node.h"
+#include "Treasure.h"
+#include "TreasureStack.h"
 
 class Board {
 private:
@@ -29,4 +31,3 @@ public:
 
     bool movePlayer(char direction);
 };
-

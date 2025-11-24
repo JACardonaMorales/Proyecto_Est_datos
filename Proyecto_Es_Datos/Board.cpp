@@ -183,10 +183,23 @@ bool Board::movePlayer(char direction) {
 
     // Verificar si hay tesoro
     if (targetNode->hasTreasure()) {
+        Treasure* foundTreasure = targetNode->getTreasure();
+
+        // Crear una copia del tesoro para la pila
+        Treasure* treasureCopy = new Treasure(foundTreasure->getType());
+        collectedTreasures.push(treasureCopy);
+
         targetNode->removeTreasure();
         treasuresCollected++;
-        // TODO: Agregar a la pila de tesoros
     }
 
     return true;
+}
+
+TreasureStack* Board::getTreasureStack() {
+    return &collectedTreasures;
+}
+
+Treasure* Board::getLastCollectedTreasure() {
+    return collectedTreasures.peek();
 }

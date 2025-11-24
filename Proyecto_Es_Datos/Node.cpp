@@ -1,4 +1,4 @@
-#include "Nodo.h"
+#include "Node.h"
 
 Node::Node() : isRevealed(false), isEmpty(false), treasure(nullptr),
 wall(nullptr), hasPlayer(false),
