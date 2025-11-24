@@ -9,7 +9,7 @@ Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     isPlayerMoving(false), movementAnimDuration(0.45f),
     showMessage(false), currentMessage("") {
 
-    if (!font.loadFromFile("assets/fonts/aria.ttf")) {
+    if (!font.loadFromFile("assets/fonts/arial.ttf")) {
         std::cerr << "Advertencia: No se pudo cargar la fuente" << std::endl;
     }
 
@@ -513,4 +513,98 @@ void Game::drawTreasurePanel() {
         moreText.setPosition(WINDOW_WIDTH - 210, yOffset);
         window.draw(moreText);
     }
+}
+
+void Game::drawGameOverScreen() {
+    // Overlay semi-transparente
+    sf::RectangleShape overlay(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+    overlay.setFillColor(sf::Color(0, 0, 0, 180));
+    window.draw(overlay);
+
+    // Panel central
+    sf::RectangleShape panel(sf::Vector2f(500, 300));
+    panel.setPosition(WINDOW_WIDTH / 2 - 250, WINDOW_HEIGHT / 2 - 150);
+    panel.setFillColor(sf::Color(40, 40, 40));
+    panel.setOutlineColor(sf::Color(255, 215, 0)); // Dorado
+    panel.setOutlineThickness(5);
+    window.draw(panel);
+
+    // Título
+    sf::Text titleText;
+    titleText.setFont(font);
+    titleText.setString("¡FELICIDADES!");
+    titleText.setCharacterSize(48);
+    titleText.setFillColor(sf::Color(255, 215, 0));
+    titleText.setStyle(sf::Text::Bold);
+    sf::FloatRect titleBounds = titleText.getLocalBounds();
+    titleText.setPosition(
+        WINDOW_WIDTH / 2 - titleBounds.width / 2,
+        WINDOW_HEIGHT / 2 - 120
+    );
+    window.draw(titleText);
+
+    // Mensaje
+    sf::Text messageText;
+    messageText.setFont(font);
+    messageText.setString("Has encontrado todos los tesoros");
+    messageText.setCharacterSize(24);
+    messageText.setFillColor(sf::Color::White);
+    sf::FloatRect msgBounds = messageText.getLocalBounds();
+    messageText.setPosition(
+        WINDOW_WIDTH / 2 - msgBounds.width / 2,
+        WINDOW_HEIGHT / 2 - 50
+    );
+    window.draw(messageText);
+
+    // Puntaje final
+    sf::Text scoreText;
+    scoreText.setFont(font);
+    scoreText.setString("Puntaje Final: " + std::to_string(score));
+    scoreText.setCharacterSize(32);
+    scoreText.setFillColor(sf::Color(100, 255, 100));
+    scoreText.setStyle(sf::Text::Bold);
+    sf::FloatRect scoreBounds = scoreText.getLocalBounds();
+    scoreText.setPosition(
+        WINDOW_WIDTH / 2 - scoreBounds.width / 2,
+        WINDOW_HEIGHT / 2 + 10
+    );
+    window.draw(scoreText);
+
+    // Botón de reinicio (visual)
+    sf::RectangleShape button(sf::Vector2f(300, 60));
+    button.setPosition(WINDOW_WIDTH / 2 - 150, WINDOW_HEIGHT / 2 + 80);
+    button.setFillColor(sf::Color(70, 130, 180));
+    button.setOutlineColor(sf::Color::White);
+    button.setOutlineThickness(3);
+    window.draw(button);
+
+    // Texto del botón
+    sf::Text buttonText;
+    buttonText.setFont(font);
+    buttonText.setString("Presiona R para Reiniciar");
+    buttonText.setCharacterSize(22);
+    buttonText.setFillColor(sf::Color::White);
+    buttonText.setStyle(sf::Text::Bold);
+    sf::FloatRect btnBounds = buttonText.getLocalBounds();
+    buttonText.setPosition(
+        WINDOW_WIDTH / 2 - btnBounds.width / 2,
+        WINDOW_HEIGHT / 2 + 95
+    );
+    window.draw(buttonText);
+}
+
+void Game::resetGame() {
+    // Reiniciar variables
+    score = 0;
+    gameOver = false;
+    isPlayerMoving = false;
+    showMessage = false;
+    currentMessage = "";
+    lastDirection = Direction::DOWN;
+
+    // Destruir el tablero viejo y crear uno nuevo
+    board.~Board();
+    new (&board) Board();
+
+    std::cout << "\n=== NUEVO JUEGO INICIADO ===" << std::endl;
 }

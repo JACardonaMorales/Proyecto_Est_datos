@@ -24,6 +24,7 @@ private:
     bool isPlayerMoving; // Si el jugador está en movimiento
     float movementAnimDuration; // Duración de la animación de movimiento
     bool showMessage; // Si hay un mensaje para mostrar
+	bool gameOver;
 
     void handleEvents();
     void handleKeyPress(sf::Keyboard::Key key);
@@ -39,6 +40,8 @@ private:
     void drawCell(Node* node, float x, float y);
     void drawUI();
     void drawTreasurePanel();
+    void drawGameOverScreen();
+    void resetGame();
 
 public:
     Game();

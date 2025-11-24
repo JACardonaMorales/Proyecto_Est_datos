@@ -144,6 +144,10 @@ Node* Board::getPlayerNode() {
     return playerNode;
 }
 
+void Board::setPlayerNode(Node* node) {
+    playerNode = node;
+}
+
 int Board::getTreasuresCollected() const {
     return treasuresCollected;
 }

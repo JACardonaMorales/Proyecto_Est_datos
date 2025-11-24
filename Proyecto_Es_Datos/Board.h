@@ -27,6 +27,7 @@ public:
 
     Node* getHead();
     Node* getPlayerNode();
+    void setPlayerNode(Node* node);
     int getTreasuresCollected() const;
     int getTotalTreasures() const;
     TreasureStack* getTreasureStack();

@@ -1,7 +1,11 @@
-﻿  Game.cpp
+﻿  Board.cpp
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Board.cpp(7,25): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+  Game.cpp
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(314,52): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(314,35): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(489,56): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(498,54): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(513,50): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+  main.cpp
+  Generando código...
   Proyecto_Es_Datos.vcxproj -> C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\x64\Debug\Proyecto_Es_Datos.exe
