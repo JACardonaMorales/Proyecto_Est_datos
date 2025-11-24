@@ -6,6 +6,7 @@
 Game::Game() : window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
     "Laberinto - Estructuras de Datos"),
 	score(0), running(true), gameOver(false), playerName(""),
+	gameState(GameState::NAME_INPUT), nameEntered(false),
     lastDirection(Direction::DOWN),
     isPlayerMoving(false), movementAnimDuration(0.45f),
     showMessage(false), currentMessage("") {
@@ -35,6 +36,10 @@ void Game::handleEvents() {
             window.close();
         }
 
+        if (gameState == GameState::NAME_INPUT && event.type == sf::Event::TextEntered) {
+            handleTextInput(event.text.unicode);
+		}
+
         if (event.type == sf::Event::KeyPressed) {
             handleKeyPress(event.key.code);
         }
@@ -42,8 +47,18 @@ void Game::handleEvents() {
 }
 
 void Game::handleKeyPress(sf::Keyboard::Key key) {
-    // Si el juego terminó, solo permitir reiniciar o ver ranking
-    if (gameOver) {
+    //Ingresando nombre
+    if (gameState == GameState::NAME_INPUT) {
+        if (key == sf::Keyboard::Enter && !playerName.empty()) {
+            gameState = GameState::PLAYING;
+            nameEntered = true;
+            std::cout << "\n¡Bienvenido " << playerName << "! Comienza el juego..." << std::endl;
+        }
+        return;
+    }
+
+    //Juego terminado
+    if (gameState == GameState::GAME_OVER) {
         if (key == sf::Keyboard::R) {
             resetGame();
         }
@@ -53,6 +68,7 @@ void Game::handleKeyPress(sf::Keyboard::Key key) {
         return;
     }
 
+    //Jugando
     char direction = ' ';
     Direction animDirection = Direction::DOWN;
 
@@ -259,6 +275,10 @@ void Game::teleportPlayerRandomly() {
 }
 
 void Game::update() {
+    // Solo actualizar si estamos jugando
+    if (gameState != GameState::PLAYING) {
+        return;
+    }
     // Obtener delta time
     float deltaTime = clock.restart().asSeconds();
 
@@ -280,48 +300,59 @@ void Game::update() {
     if (!gameOver && board.getTreasuresCollected() >= board.getTotalTreasures()) {
         std::cout << "¡Felicidades! Has encontrado todos los tesoros" << std::endl;
         std::cout << "Puntaje final: " << score << std::endl;
+        saveScore();
+		gameState = GameState::GAME_OVER;
         gameOver = true; 
-        // TODO: Guardar puntaje y preguntar si quiere jugar de nuevo
     }
 }
 
 void Game::render() {
     window.clear(sf::Color(40, 40, 40));
 
-    drawBoard();
-    drawUI();
+    // Dibujar según el estado
+    switch (gameState) {
+    case GameState::NAME_INPUT:
+        drawNameInputScreen();
+        break;
 
-    if (gameOver) {
+    case GameState::PLAYING:
+        drawBoard();
+        drawUI();
+
+        // Dibujar mensaje temporal
+        if (showMessage) {
+            sf::RectangleShape messageBox(sf::Vector2f(400, 60));
+            messageBox.setPosition(WINDOW_WIDTH / 2 - 200, 20);
+            messageBox.setFillColor(sf::Color(0, 0, 0, 180));
+            messageBox.setOutlineColor(sf::Color::Yellow);
+            messageBox.setOutlineThickness(3);
+            window.draw(messageBox);
+
+            sf::Text messageText;
+            messageText.setFont(font);
+            messageText.setString(currentMessage);
+            messageText.setCharacterSize(22);
+            messageText.setFillColor(sf::Color::Yellow);
+            messageText.setStyle(sf::Text::Bold);
+
+            sf::FloatRect textBounds = messageText.getLocalBounds();
+            messageText.setPosition(
+                WINDOW_WIDTH / 2 - textBounds.width / 2,
+                35
+            );
+            window.draw(messageText);
+        }
+        break;
+
+    case GameState::GAME_OVER:
+        drawBoard();
         drawGameOverScreen();
-    }
-
-    // Dibujar mensaje temporal
-    if (showMessage) {
-        sf::RectangleShape messageBox(sf::Vector2f(400, 60));
-        messageBox.setPosition(WINDOW_WIDTH / 2 - 200, 20);
-        messageBox.setFillColor(sf::Color(0, 0, 0, 180));
-        messageBox.setOutlineColor(sf::Color::Yellow);
-        messageBox.setOutlineThickness(3);
-        window.draw(messageBox);
-
-        sf::Text messageText;
-        messageText.setFont(font);
-        messageText.setString(currentMessage);
-        messageText.setCharacterSize(22);
-        messageText.setFillColor(sf::Color::Yellow);
-        messageText.setStyle(sf::Text::Bold);
-
-        // Centrar texto
-        sf::FloatRect textBounds = messageText.getLocalBounds();
-        messageText.setPosition(
-            WINDOW_WIDTH / 2 - textBounds.width / 2,
-            35
-        );
-        window.draw(messageText);
+        break;
     }
 
     window.display();
 }
+
 
 void Game::drawBoard() {
     Node* currentRow = board.getHead();
@@ -622,6 +653,11 @@ void Game::resetGame() {
     showMessage = false;
     currentMessage = "";
     lastDirection = Direction::DOWN;
+    playerName = "";  // Limpiar nombre para nuevo jugador
+
+    // Volver a pedir el nombre
+    gameState = GameState::NAME_INPUT;
+    nameEntered = false;
 
     // Destruir el tablero viejo y crear uno nuevo
     board.~Board();
@@ -629,6 +665,7 @@ void Game::resetGame() {
 
     std::cout << "\n=== NUEVO JUEGO INICIADO ===" << std::endl;
 }
+
 
 void Game::handleTextInput(sf::Uint32 unicode) {
     // Backspace

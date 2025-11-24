@@ -10,8 +10,16 @@ const int CELL_SIZE = 60;
 const int WINDOW_WIDTH = (BOARD_SIZE + 2) * CELL_SIZE;
 const int WINDOW_HEIGHT = (BOARD_SIZE + 2) * CELL_SIZE + 150;
 
+enum class GameState {
+    NAME_INPUT,
+	PLAYING,
+    GAME_OVER
+};
+
 class Game {
 private:
+    GameState gameState;
+    bool nameEntered;
     sf::RenderWindow window;
     Board board;
     sf::Font font;
