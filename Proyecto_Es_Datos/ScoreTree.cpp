@@ -1,141 +1,236 @@
 #include "ScoreTree.h"
+#include "json.hpp"
+#include <fstream>
 #include <iostream>
 #include <algorithm>
 
-// TreeNode implementation
-TreeNode::TreeNode(Player p) : player(p), left(nullptr), right(nullptr) {}
+using json = nlohmann::json;
 
-TreeNode::~TreeNode() {
-    // Los nodos hijos se eliminan en destroyTree
+ScoreTree::ScoreTree() : root(nullptr), jsonFilePath("scores.json") {
+    loadFromJson();
 }
 
-Player& TreeNode::getPlayer() {
-    return player;
+ScoreTree::ScoreTree(const std::string& jsonPath) : root(nullptr), jsonFilePath(jsonPath) {
+    loadFromJson();
 }
-
-TreeNode* TreeNode::getLeft() const {
-    return left;
-}
-
-TreeNode* TreeNode::getRight() const {
-    return right;
-}
-
-void TreeNode::setLeft(TreeNode* node) {
-    left = node;
-}
-
-void TreeNode::setRight(TreeNode* node) {
-    right = node;
-}
-
-// ScoreTree implementation
-ScoreTree::ScoreTree() : root(nullptr), totalPlayers(0) {}
 
 ScoreTree::~ScoreTree() {
-    destroyTree(root);
+    saveToJson();
+    clear(root);
 }
 
-void ScoreTree::destroyTree(TreeNode* node) {
+void ScoreTree::clear(TreeNode* node) {
     if (node) {
-        destroyTree(node->getLeft());
-        destroyTree(node->getRight());
+        clear(node->left);
+        clear(node->right);
         delete node;
     }
 }
 
-TreeNode* ScoreTree::insertNode(TreeNode* node, Player player) {
-    if (!node) {
-        totalPlayers++;
+ScoreTree::TreeNode* ScoreTree::insert(TreeNode* node, const Player& player) {
+    if (node == nullptr) {
         return new TreeNode(player);
     }
 
-    // Si el jugador ya existe, actualizar solo si el nuevo puntaje es mejor
-    if (player.getName() == node->getPlayer().getName()) {
-        if (player.getBestScore() < node->getPlayer().getBestScore()) {
-            node->getPlayer().setBestScore(player.getBestScore());
-            std::cout << "Nuevo mejor puntaje para " << player.getName()
-                << ": " << player.getBestScore() << std::endl;
-        }
-        else {
-            std::cout << "Puntaje anterior de " << player.getName()
-                << " era mejor: " << node->getPlayer().getBestScore() << std::endl;
-        }
-        return node;
+    // Ordenar por score (menor es mejor)
+    if (player.getBestScore() < node->player.getBestScore()) {
+        node->left = insert(node->left, player);
     }
-
-    // Insertar según el nombre (orden alfabético)
-    if (player.getName() < node->getPlayer().getName()) {
-        node->setLeft(insertNode(node->getLeft(), player));
+    else if (player.getBestScore() > node->player.getBestScore()) {
+        node->right = insert(node->right, player);
     }
     else {
-        node->setRight(insertNode(node->getRight(), player));
+        // Si los scores son iguales, ordenar alfabéticamente por nombre
+        if (player.getName() < node->player.getName()) {
+            node->left = insert(node->left, player);
+        }
+        else {
+            node->right = insert(node->right, player);
+        }
     }
 
     return node;
 }
 
-void ScoreTree::insertPlayer(std::string name, int score) {
-    Player newPlayer(name, score);
-    root = insertNode(root, newPlayer);
+void ScoreTree::insertPlayer(const std::string& name, int score) {
+    // Verificar si el jugador ya existe
+    Player* existingPlayer = findPlayer(name);
+
+    if (existingPlayer != nullptr) {
+        // Solo actualizar si el nuevo puntaje es MEJOR (menor)
+        if (score < existingPlayer->getBestScore()) {
+            std::cout << "Nuevo récord para " << name << "! Anterior: "
+                << existingPlayer->getBestScore() << " -> Nuevo: " << score << std::endl;
+
+            // Eliminar el nodo viejo y reinsertar con nuevo score
+            // (Implementación simplificada: reconstruir árbol)
+            std::vector<Player> allPlayers;
+            serializeTree(root, allPlayers);
+
+            // Limpiar árbol actual
+            clear(root);
+            root = nullptr;
+
+            // Reinsertar todos excepto el jugador a actualizar
+            for (const auto& p : allPlayers) {
+                if (p.getName() != name) {
+                    root = insert(root, p);
+                }
+            }
+
+            // Insertar con nuevo score
+            Player updatedPlayer(name, score);
+            root = insert(root, updatedPlayer);
+        }
+        else {
+            std::cout << "El puntaje anterior de " << name << " ("
+                << existingPlayer->getBestScore() << ") es mejor. No se actualiza." << std::endl;
+        }
+    }
+    else {
+        // Jugador nuevo
+        Player newPlayer(name, score);
+        root = insert(root, newPlayer);
+        std::cout << "Jugador " << name << " registrado con " << score << " puntos." << std::endl;
+    }
+
+    // Guardar automáticamente después de cada inserción
+    saveToJson();
 }
 
-TreeNode* ScoreTree::searchNode(TreeNode* node, std::string name) {
-    if (!node) {
+ScoreTree::TreeNode* ScoreTree::search(TreeNode* node, const std::string& name) const {
+    if (node == nullptr) {
         return nullptr;
     }
 
-    if (name == node->getPlayer().getName()) {
+    if (node->player.getName() == name) {
         return node;
     }
 
-    if (name < node->getPlayer().getName()) {
-        return searchNode(node->getLeft(), name);
+    // Buscar en ambos subárboles
+    TreeNode* leftResult = search(node->left, name);
+    if (leftResult != nullptr) {
+        return leftResult;
     }
-    else {
-        return searchNode(node->getRight(), name);
-    }
+
+    return search(node->right, name);
 }
 
-Player* ScoreTree::findPlayer(std::string name) {
-    TreeNode* node = searchNode(root, name);
-    if (node) {
-        return &(node->getPlayer());
+Player* ScoreTree::findPlayer(const std::string& name) const {
+    TreeNode* node = search(root, name);
+    if (node != nullptr) {
+        return &(node->player);
     }
     return nullptr;
 }
 
-void ScoreTree::inOrderTraversal(TreeNode* node, std::vector<Player>& players) {
-    if (node) {
-        inOrderTraversal(node->getLeft(), players);
-        players.push_back(node->getPlayer());
-        inOrderTraversal(node->getRight(), players);
-    }
+void ScoreTree::inorderReverse(TreeNode* node, std::vector<Player>& players) const {
+    if (node == nullptr) return;
+
+    // Inorden invertido: derecha -> raíz -> izquierda
+    // (para obtener de mayor a menor, pero nosotros queremos menor a mayor)
+    // Entonces usamos inorden normal: izquierda -> raíz -> derecha
+    inorderReverse(node->left, players);
+    players.push_back(node->player);
+    inorderReverse(node->right, players);
 }
 
-std::vector<Player> ScoreTree::getAllPlayersSorted() {
+void ScoreTree::serializeTree(TreeNode* node, std::vector<Player>& players) const {
+    if (node == nullptr) return;
+
+    players.push_back(node->player);
+    serializeTree(node->left, players);
+    serializeTree(node->right, players);
+}
+
+std::vector<Player> ScoreTree::getTopPlayers(int count) const {
+    std::vector<Player> allPlayers;
+    inorderReverse(root, allPlayers);
+
+    if (allPlayers.size() > count) {
+        allPlayers.resize(count);
+    }
+
+    return allPlayers;
+}
+
+void ScoreTree::printAllPlayers() const {
     std::vector<Player> players;
-    inOrderTraversal(root, players);
+    inorderReverse(root, players);
 
-    // Ordenar por puntaje (menor es mejor)
-    std::sort(players.begin(), players.end(),
-        [](const Player& a, const Player& b) {
-            return a.getBestScore() < b.getBestScore();
-        });
-
-    return players;
+    std::cout << "\n===== TODOS LOS JUGADORES =====" << std::endl;
+    if (players.empty()) {
+        std::cout << "No hay jugadores registrados." << std::endl;
+    }
+    else {
+        for (size_t i = 0; i < players.size(); i++) {
+            std::cout << (i + 1) << ". " << players[i].getName()
+                << " - " << players[i].getBestScore() << " puntos" << std::endl;
+        }
+    }
+    std::cout << "===============================" << std::endl;
 }
 
-std::vector<Player> ScoreTree::getTopPlayers(int n) {
-    std::vector<Player> allPlayers = getAllPlayersSorted();
+void ScoreTree::saveToJson() const {
+    json j;
+    std::vector<Player> players;
 
-    if (allPlayers.size() <= n) {
-        return allPlayers;
+    // Serializar todos los jugadores
+    serializeTree(root, players);
+
+    // Convertir a JSON
+    for (const auto& player : players) {
+        j.push_back({
+            {"name", player.getName()},
+            {"bestScore", player.getBestScore()}
+            });
     }
 
-    return std::vector<Player>(allPlayers.begin(), allPlayers.begin() + n);
+    // Escribir al archivo
+    std::ofstream file(jsonFilePath);
+    if (file.is_open()) {
+        file << j.dump(4); // dump(4) formatea con indentación
+        file.close();
+        std::cout << "[GUARDADO] Puntajes guardados en " << jsonFilePath << std::endl;
+    }
+    else {
+        std::cerr << "[ERROR] No se pudo guardar " << jsonFilePath << std::endl;
+    }
 }
 
-int ScoreTree::getTotalPlayers() const {
-    return totalPlayers;
+void ScoreTree::loadFromJson() {
+    std::ifstream file(jsonFilePath);
+
+    if (!file.is_open()) {
+        std::cout << "[INFO] No se encontró " << jsonFilePath << ". Se creará uno nuevo." << std::endl;
+        return;
+    }
+
+    try {
+        json j;
+        file >> j;
+        file.close();
+
+        // Cargar cada jugador al árbol
+        for (const auto& item : j) {
+            std::string name = item["name"];
+            int score = item["bestScore"];
+
+            Player player(name, score);
+            root = insert(root, player);
+        }
+
+        std::cout << "[CARGADO] " << j.size() << " jugador(es) cargados desde " << jsonFilePath << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "[ERROR] Error al cargar JSON: " << e.what() << std::endl;
+    }
+}
+
+void ScoreTree::save() {
+    saveToJson();
+}
+
+void ScoreTree::load() {
+    loadFromJson();
 }

@@ -1,53 +1,43 @@
 #pragma once
 #include "Player.h"
 #include <vector>
-#include <memory>
+#include <string>
 
-// Nodo del árbol
-class TreeNode {
-private:
-    Player player;
-    TreeNode* left;
-    TreeNode* right;
-
-public:
-    TreeNode(Player p);
-    ~TreeNode();
-
-    Player& getPlayer();
-    TreeNode* getLeft() const;
-    TreeNode* getRight() const;
-    void setLeft(TreeNode* node);
-    void setRight(TreeNode* node);
-};
-
-// Árbol Binario de Búsqueda para puntajes
 class ScoreTree {
 private:
-    TreeNode* root;
-    int totalPlayers;
+    struct TreeNode {
+        Player player;
+        TreeNode* left;
+        TreeNode* right;
 
-    // Métodos privados recursivos
-    TreeNode* insertNode(TreeNode* node, Player player);
-    TreeNode* searchNode(TreeNode* node, std::string name);
-    void inOrderTraversal(TreeNode* node, std::vector<Player>& players);
-    void destroyTree(TreeNode* node);
+        TreeNode(const Player& p) : player(p), left(nullptr), right(nullptr) {}
+    };
+
+    TreeNode* root;
+    std::string jsonFilePath;
+
+    // Metodos privados auxiliares
+    TreeNode* insert(TreeNode* node, const Player& player);
+    void inorderReverse(TreeNode* node, std::vector<Player>& players) const;
+    void clear(TreeNode* node);
+    TreeNode* search(TreeNode* node, const std::string& name) const;
+
+    // Nuevos metodos para JSON
+    void saveToJson() const;
+    void loadFromJson();
+    void serializeTree(TreeNode* node, std::vector<Player>& players) const;
 
 public:
     ScoreTree();
+    ScoreTree(const std::string& jsonPath);
     ~ScoreTree();
 
-    // Insertar o actualizar jugador
-    void insertPlayer(std::string name, int score);
+    void insertPlayer(const std::string& name, int score);
+    std::vector<Player> getTopPlayers(int count) const;
+    Player* findPlayer(const std::string& name) const;
+    void printAllPlayers() const;
 
-    // Buscar jugador por nombre
-    Player* findPlayer(std::string name);
-
-    // Obtener todos los jugadores ordenados por puntaje (menor a mayor)
-    std::vector<Player> getAllPlayersSorted();
-
-    // Obtener top N jugadores
-    std::vector<Player> getTopPlayers(int n);
-
-    int getTotalPlayers() const;
+    // Metodos de persistencia (nuevoo)
+    void save();
+    void load();
 };

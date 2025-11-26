@@ -752,13 +752,13 @@ void Game::drawNameInputScreen() {
 
 void Game::drawLeaderboard() {
     std::cout << "\n===================================" << std::endl;
-    std::cout << "|      TABLA DE CLASIFICACIÓN      |" << std::endl;
+    std::cout << "|      TABLA DE CLASIFICACION      |" << std::endl;
     std::cout << "|===================================|" << std::endl;
 
     std::vector<Player> topPlayers = scoreTree.getTopPlayers(10);
 
     if (topPlayers.empty()) {
-        std::cout << "|  No hay jugadores registrados    |" << std::endl;
+        std::cout << "|  No hay jugadores registrados   |" << std::endl;
     }
     else {
         for (size_t i = 0; i < topPlayers.size(); i++) {
@@ -774,4 +774,27 @@ void Game::drawLeaderboard() {
     }
 
     std::cout << "=====================================" << std::endl;
+}
+
+void Game::saveScore() {
+    if (!playerName.empty()) {
+        scoreTree.insertPlayer(playerName, score);
+        // Ya se guarda automáticamente en insertPlayer()
+    }
+}
+
+// Agregar método para buscar jugador
+void Game::searchPlayer() {
+    std::string searchName;
+    std::cout << "Ingrese el nombre del jugador: ";
+    std::getline(std::cin, searchName);
+
+    Player* player = scoreTree.findPlayer(searchName);
+    if (player != nullptr) {
+        std::cout << "Jugador encontrado: " << player->getName()
+            << " - Mejor puntaje: " << player->getBestScore() << std::endl;
+    }
+    else {
+        std::cout << "Jugador no encontrado." << std::endl;
+    }
 }

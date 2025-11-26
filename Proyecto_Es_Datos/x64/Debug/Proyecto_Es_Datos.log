@@ -5,6 +5,30 @@ C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(550,54): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(565,50): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(769,24): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(779,12): error C2084: la función 'void Game::saveScore(void)' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Game.cpp(683,12):
+      vea la definición anterior de “Game::saveScore”
+  
   main.cpp
+  Player.cpp
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.cpp(3,9): error C2084: la función 'Player::Player(void)' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.h(10,5):
+      vea la definición anterior de “Player::Player”
+  
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.cpp(5,9): error C2084: la función 'Player::Player(const std::string &,int)' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.h(11,5):
+      vea la definición anterior de “Player::Player”
+  
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.cpp(9,21): error C2084: la función 'std::string Player::getName(void) const' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.h(13,17):
+      vea la definición anterior de “Player::getName”
+  
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.cpp(13,13): error C2084: la función 'int Player::getBestScore(void) const' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.h(14,9):
+      vea la definición anterior de “Player::getBestScore”
+  
+C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.cpp(17,14): error C2084: la función 'void Player::setBestScore(int)' ya tiene un cuerpo
+      C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\Proyecto_Es_Datos\Player.h(15,10):
+      vea la definición anterior de “Player::setBestScore”
+  
   Generando código...
-  Proyecto_Es_Datos.vcxproj -> C:\Universidad\Estructura de Datos\Proyecto_Es_Datos\x64\Debug\Proyecto_Es_Datos.exe

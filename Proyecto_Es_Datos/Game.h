@@ -56,6 +56,7 @@ private:
     void resetGame();
     void handleTextInput(sf::Uint32 unicode);
     void saveScore();
+    void searchPlayer();
     void drawNameInputScreen();
     void drawLeaderboard();
 

@@ -7,15 +7,10 @@ private:
     int bestScore;
 
 public:
-    Player();
-    Player(std::string playerName, int score);
+    Player() : name(""), bestScore(0) {}
+    Player(const std::string& n, int score) : name(n), bestScore(score) {}
 
-    std::string getName() const;
-    int getBestScore() const;
-    void setBestScore(int score);
-
-    // Para comparación en el ABB (menor puntaje = mejor)
-    bool operator<(const Player& other) const;
-    bool operator>(const Player& other) const;
-    bool operator==(const Player& other) const;
+    std::string getName() const { return name; }
+    int getBestScore() const { return bestScore; }
+    void setBestScore(int score) { bestScore = score; }
 };
