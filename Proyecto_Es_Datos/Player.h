@@ -7,10 +7,15 @@ private:
     int bestScore;
 
 public:
-    Player() : name(""), bestScore(0) {}
-    Player(const std::string& n, int score) : name(n), bestScore(score) {}
+    Player();
+    Player(const std::string& n, int score);
 
-    std::string getName() const { return name; }
-    int getBestScore() const { return bestScore; }
-    void setBestScore(int score) { bestScore = score; }
+    std::string getName() const;
+    int getBestScore() const;
+    void setBestScore(int score);
+
+    // Operadores (si los tienes)
+    bool operator<(const Player& other) const;
+    bool operator>(const Player& other) const;
+    bool operator==(const Player& other) const;
 };

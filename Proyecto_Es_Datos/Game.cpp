@@ -776,13 +776,6 @@ void Game::drawLeaderboard() {
     std::cout << "=====================================" << std::endl;
 }
 
-void Game::saveScore() {
-    if (!playerName.empty()) {
-        scoreTree.insertPlayer(playerName, score);
-        // Ya se guarda automáticamente en insertPlayer()
-    }
-}
-
 // Agregar método para buscar jugador
 void Game::searchPlayer() {
     std::string searchName;

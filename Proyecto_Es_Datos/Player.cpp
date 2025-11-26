@@ -2,7 +2,7 @@
 
 Player::Player() : name(""), bestScore(0) {}
 
-Player::Player(const std::string& playerName, int score)  // Agregar const&
+Player::Player(const std::string& playerName, int score)
     : name(playerName), bestScore(score) {
 }
 
@@ -16,4 +16,16 @@ int Player::getBestScore() const {
 
 void Player::setBestScore(int score) {
     bestScore = score;
+}
+
+bool Player::operator<(const Player& other) const {
+    return bestScore < other.bestScore;
+}
+
+bool Player::operator>(const Player& other) const {
+    return bestScore > other.bestScore;
+}
+
+bool Player::operator==(const Player& other) const {
+    return name == other.name;
 }
